@@ -136,8 +136,9 @@ void main() {
 
         private void LayoutGL()
         {
-            // GLControl fills the whole panel — rulers are painted on top in OnPaint.
-            _gl.Bounds = new Rectangle(0, 0, Width, Height);
+            // GLControl covers only the canvas area — ruler strip stays in GDI+ OnPaint.
+            int rs = AppSpacing.RulerSize;
+            _gl.Bounds = new Rectangle(rs, rs, Math.Max(1, Width - rs), Math.Max(1, Height - rs));
         }
 
         // ── GL init ───────────────────────────────────────────────────────────
@@ -246,10 +247,10 @@ void main() {
             if (hasImage)
             {
                 var r = GetImageRect();
-                // uImgRect in GL viewport coords (origin = top-left of GLControl)
-                // GLControl covers the whole panel so screen coords are direct
+                // uImgRect in GL viewport coords: _gl origin is (RulerSize, RulerSize) in panel space.
+                int rs = AppSpacing.RulerSize;
                 GL.Uniform4(GL.GetUniformLocation(_prog, "uImgRect"),
-                    r.X, r.Y, r.Width, r.Height);
+                    r.X - rs, r.Y - rs, r.Width, r.Height);
 
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, _tex);
@@ -334,12 +335,7 @@ void main() {
                     int tickW = major ? 8 : 4;
                     g.DrawLine(tickPen, AppSpacing.RulerSize - tickW, sy, AppSpacing.RulerSize, sy);
                     if (major)
-                    {
-                        g.TranslateTransform(AppSpacing.RulerSize - 2, sy - 2);
-                        g.RotateTransform(-90);
-                        g.DrawString(px.ToString(), AppFonts.Small, textBrush, 0, 0);
-                        g.ResetTransform();
-                    }
+                        g.DrawString(px.ToString(), AppFonts.Small, textBrush, 1, sy + 2);
                 }
             }
 

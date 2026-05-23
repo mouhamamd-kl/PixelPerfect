@@ -38,7 +38,7 @@ namespace PixelPerfect.UI.Atoms
         public const int TopBarHeight        = 44;
         public const int BottomToolbarHeight = 56;
         public const int RightPanelWidth     = 240;
-        public const int RulerSize           = 20;
+        public const int RulerSize           = 36;
         public const int IconSize            = 24;
     }
 }
