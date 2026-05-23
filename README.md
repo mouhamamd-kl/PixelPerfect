@@ -4,6 +4,22 @@ A .NET 10 WinForms image editor with per-channel color-space adjustment, GPU-acc
 
 ---
 
+## Screenshots
+
+| Empty State | Image View |
+|---|---|
+| ![Empty State](Design/EmptyState.png) | ![Image View](Design/ImageView.png) |
+
+| Color Settings Bar | RGB Cube (3D Viewer) |
+|---|---|
+| ![Color Settings Bar](Design/ImageWithColorSystemBar.png) | ![RGB Cube](Design/RGBCubeView.png) |
+
+| Color Picker Popup | Export Dialog |
+|---|---|
+| ![Color Picker Popup](Design/ColorPickerPopup.png) | ![Export Dialog](Design/ExportImageDialog.png) |
+
+---
+
 ## Architecture Overview
 
 PixelPerfect follows a **layered UI architecture** (Atoms → Molecules → Organisms → Templates) with a clean service layer and async processing pipeline.
