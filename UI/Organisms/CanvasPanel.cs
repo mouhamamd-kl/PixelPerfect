@@ -46,6 +46,10 @@ namespace PixelPerfect.UI.Organisms
         // ── Events ────────────────────────────────────────────────────────────
         public event EventHandler<Color>  PixelPicked;
         public event EventHandler<string> FileDropped;
+        public event EventHandler         BrowseClicked;
+
+        // ── Empty state hit rect ──────────────────────────────────────────────
+        private RectangleF _browseButtonRect;
 
         // ── GLSL ──────────────────────────────────────────────────────────────
 
@@ -136,9 +140,13 @@ void main() {
 
         private void LayoutGL()
         {
-            // GLControl covers only the canvas area — ruler strip stays in GDI+ OnPaint.
             int rs = AppSpacing.RulerSize;
-            _gl.Bounds = new Rectangle(rs, rs, Math.Max(1, Width - rs), Math.Max(1, Height - rs));
+            if (_bitmap != null)
+                // Cover only the canvas area so GDI+ rulers remain visible on top.
+                _gl.Bounds = new Rectangle(rs, rs, Math.Max(1, Width - rs), Math.Max(1, Height - rs));
+            else
+                // Push off-screen so GDI+ OnPaint draws the empty state.
+                _gl.Bounds = new Rectangle(-2, -2, 1, 1);
         }
 
         // ── GL init ───────────────────────────────────────────────────────────
@@ -274,11 +282,59 @@ void main() {
 
         protected override void OnPaint(PaintEventArgs e)
         {
+            if (_bitmap == null)
+                DrawEmptyState(e.Graphics);
+
             DrawRulers(e.Graphics);
 
             // Corner fill (ruler intersection square)
             using var cornerBrush = new SolidBrush(AppColors.RulerBg);
             e.Graphics.FillRectangle(cornerBrush, 0, 0, AppSpacing.RulerSize, AppSpacing.RulerSize);
+        }
+
+        private void DrawEmptyState(Graphics g)
+        {
+            g.SmoothingMode     = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+            int rs = AppSpacing.RulerSize;
+            int cx = rs + (Width  - rs) / 2;
+            int cy = rs + (Height - rs) / 2;
+
+            const int cardW  = 400;
+            const int cardH  = 280;
+            const int radius = 16;
+            var card = new RectangleF(cx - cardW / 2f, cy - cardH / 2f, cardW, cardH);
+
+            using (var fill = new SolidBrush(Color.FromArgb(AppColors.IsDarkTheme ? 40 : 25, AppColors.Accent)))
+                g.FillRoundedRect(fill, card, radius);
+
+            using (var pen = new Pen(AppColors.Accent, 2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
+                g.DrawRoundedRect(pen, card, radius);
+
+            using var titleFont  = new Font("Segoe UI", 13f, FontStyle.Bold);
+            using var titleBrush = new SolidBrush(AppColors.Accent);
+            var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            g.DrawString("Drag And Drop An Image", titleFont, titleBrush,
+                new RectangleF(card.X, card.Y + 24, card.Width, 28), sf);
+
+            int iconSize = 64;
+            var icon = Helpers.SvgIconHelper.Load("Gallery Add.svg", iconSize, AppColors.Accent);
+            if (icon != null)
+                g.DrawImage(icon, cx - iconSize / 2f, card.Y + cardH / 2f - iconSize / 2f - 8, iconSize, iconSize);
+
+            const int btnW = 136;
+            const int btnH = 36;
+            float btnX = cx - btnW / 2f;
+            float btnY = card.Bottom - btnH - 28;
+            _browseButtonRect = new RectangleF(btnX, btnY, btnW, btnH);
+
+            using (var btnFill = new SolidBrush(AppColors.Accent))
+                g.FillRoundedRect(btnFill, _browseButtonRect, btnH / 2);
+
+            using var btnFont  = new Font("Segoe UI", 9.5f);
+            using var btnBrush = new SolidBrush(Color.White);
+            g.DrawString("Browse Files", btnFont, btnBrush, _browseButtonRect, sf);
         }
 
         private void DrawRulers(Graphics g)
@@ -391,6 +447,7 @@ void main() {
                 GL.DeleteTexture(_tex);
                 _tex = -1;
             }
+            LayoutGL();   // show or hide GL surface based on whether we have a bitmap
             ResetView();
         }
 
@@ -413,11 +470,23 @@ void main() {
         // Absorb wheel on the panel itself (GLControl forwards via private handler)
         protected override void OnMouseWheel(MouseEventArgs e) { /* absorbed */ }
 
+        // Panel-level overrides — fire when _gl is off-screen (empty state)
+        protected override void OnMouseDown(MouseEventArgs e) { base.OnMouseDown(e); HandleMouseDown(e); }
+        protected override void OnMouseMove(MouseEventArgs e) { base.OnMouseMove(e); HandleMouseMove(e); }
+        protected override void OnMouseUp(MouseEventArgs e)   { base.OnMouseUp(e);   HandleMouseUp(e); }
+
         private void HandleMouseDown(MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left) return;
 
-            if (_isEyedropper && _bitmap != null)
+            if (_bitmap == null)
+            {
+                if (_browseButtonRect.Contains(e.Location))
+                    BrowseClicked?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            if (_isEyedropper)
             {
                 PointF imgPos = ScreenToImage(e.Location);
                 int ix = (int)imgPos.X, iy = (int)imgPos.Y;
@@ -433,6 +502,11 @@ void main() {
 
         private void HandleMouseMove(MouseEventArgs e)
         {
+            if (_bitmap == null)
+            {
+                Cursor = _browseButtonRect.Contains(e.Location) ? Cursors.Hand : Cursors.Default;
+                return;
+            }
             if (!_isPanning) return;
             _panOffset.X += e.X - _lastMouse.X;
             _panOffset.Y += e.Y - _lastMouse.Y;
