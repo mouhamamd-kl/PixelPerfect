@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Update="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Atoms\AppSlider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Atoms\IconButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Dialogs\ColorPickerPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Dialogs\ExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Dialogs\ResetDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Molecules\ColorCountButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Molecules\ColorSwatch.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Molecules\DialogButtonRow.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Molecules\LabeledSlider.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\BottomToolbar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\CanvasPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\ColorSettingsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\ColorSpaceBar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\ColorSpaceViewerPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\LeftToolbar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Organisms\TopBar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Templates\MainLayout.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
