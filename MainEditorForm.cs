@@ -30,6 +30,7 @@ namespace PixelPerfect
         public MainEditorForm()
         {
             InitializeComponent();
+            KeyPreview = true;
 
             _imageService = new ImageService();
 
@@ -74,6 +75,7 @@ namespace PixelPerfect
 
             _layout.CanvasPanel.PixelPicked       += OnPixelPicked;
             _layout.CanvasPanel.FileDropped       += (s, path) => LoadImageFromPath(path);
+            _layout.CanvasPanel.BrowseClicked     += (s, e) => OpenImage();
             _layout.ColorSpaceViewer.ColorPicked  += OnPixelPicked;
 
             _layout.BottomToolbar.ToolChanged += (s, tool) =>
@@ -143,6 +145,29 @@ namespace PixelPerfect
             {
                 MessageBox.Show($"Export failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.KeyCode == Keys.Delete && _model != null)
+                ClearImage();
+        }
+
+        private void ClearImage()
+        {
+            _cts.Cancel();
+            _debounce.Stop();
+
+            _model?.Dispose();
+            _model = null;
+            _displayBitmap?.Dispose();
+            _displayBitmap = null;
+
+            _layout.CanvasPanel.SetBitmap(null);
+            _layout.TopBar.UpdateImageInfo(0, 0, null, 0, null);
+            _layout.ColorSettingsPanel.ResetToDefaults();
+            _layout.ColorSpaceViewer.SetColorSettings(_layout.ColorSettingsPanel.GetSettings());
         }
 
         private void ResetChanges()
